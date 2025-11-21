@@ -29,7 +29,8 @@ typedef struct {
 
     mcp23s17_cs_low_t        cs_low;
     mcp23s17_cs_high_t       cs_high;
-    mcp23s17_spi_transfer_t  spi_transfer;
+    mcp23s17_spi_transfer_t  spi_receive;
+    mcp23s17_spi_transfer_t  spi_transmit;
     mcp23s17_delay_ms_t      delay_ms;
 
     SemaphoreHandle_t        mutex;         // NULL = pas de protection, sinon mutex FreeRTOS
@@ -73,7 +74,7 @@ typedef enum {
 // Fonctions publiques (retour: 1 = OK, 0 = erreur)
 // ---------------------------------------------------------------------------
 
-void MCP23S17_Init(void);
+int mcp23s17_init(mcp23s17_handle_t *h);
 
 int mcp23s17_write_reg(mcp23s17_handle_t *handle, uint8_t reg, uint8_t value);
 int mcp23s17_read_reg(mcp23s17_handle_t *handle, uint8_t reg, uint8_t *value);

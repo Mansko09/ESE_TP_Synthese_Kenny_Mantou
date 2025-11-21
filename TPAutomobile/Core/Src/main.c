@@ -59,7 +59,7 @@
 
 /* USER CODE BEGIN PV */
 h_shell_t h_shell;
-//mcp23s17_handle_t mcp;
+mcp23s17_handle_t mcp;
 SemaphoreHandle_t mutex;
 /* USER CODE END PV */
 
@@ -99,32 +99,22 @@ h_shell_t h_shell =
 		}
 };
 
-//// Callbacks MCP23S17
-//static void cs_low(void *d)   { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, GPIO_PIN_RESET); }
-//static void cs_high(void *d)  { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, GPIO_PIN_SET); }
-//static void spi_xfer(const uint8_t *tx, uint8_t *rx, uint16_t len, void *d)
-//{
-//	HAL_SPI_TransmitReceive(&hspi3, (uint8_t*)tx, rx, len, 100);
-//}
-//static void delay_ms(uint32_t ms, void *d) { vTaskDelay(pdMS_TO_TICKS(ms)); }
-//
+// Callbacks MCP23S17
+static void cs_low(void *d)   { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET); }
+static void cs_high(void *d)  { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET); }
+static void spi_send(const uint8_t *tx, uint8_t *rx, uint16_t len, void *d)
+{
+	HAL_SPI_Transmit(&hspi3, tx, len, 100);
+}
+static void spi_recv(const uint8_t *tx, uint8_t *rx, uint16_t len, void *d)
+{
+	HAL_SPI_Transmit(&hspi3, rx, len, 100);
+}
+static void delay_ms(uint32_t ms, void *d) { vTaskDelay(pdMS_TO_TICKS(ms)); }
+
+
 //void task_xpander(void * unused)
 //{
-//	mcp = (mcp23s17_handle_t){
-//		.addr_pins    = 0b000,
-//				.user_data    = NULL,
-//				.cs_low       = cs_low,
-//				.cs_high      = cs_high,
-//				.spi_transfer = spi_xfer,
-//				.delay_ms     = delay_ms,
-//				.mutex        = mutex
-//	};
-//	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, RESET);// nRST
-//	if (mcp23s17_init(&mcp, 1)) {
-//		// OK
-//		mcp23s17_pin_mode(&mcp, 0, 0);  // sortie
-//		mcp23s17_digital_write(&mcp, 0, 1);
-//	}
 //	mcp23s17_write_reg(&mcp, MCP23S17_IODIRA, 0x00);  // Port A tout sortie
 //	mcp23s17_write_reg(&mcp, MCP23S17_IODIRB, 0x00);  // Port B tout sortie
 //	vTaskDelay(1000);
@@ -180,8 +170,8 @@ int chenillard(h_shell_t * h_shell, int argc, char ** argv)
 	}
 	int a = atoi(argv[1]);
 	if (a <= 15){
-		MCP23S17_SetAllPinsLow();
-		MCP23S17_SetLed(a);
+		//		MCP23S17_SetAllPinsLow();
+		//		MCP23S17_SetLed(a);
 		printf("Led %d \r\n", a);
 	}
 
@@ -244,9 +234,7 @@ int main(void)
 
 	/* USER CODE BEGIN Init */
 
-	/* USER CODE END Ini//
-
-
+	/* USER CODE END Init */
 
 	/* Configure the system clock */
 	SystemClock_Config();
@@ -267,63 +255,79 @@ int main(void)
 	MX_USB_OTG_FS_PCD_Init();
 	/* USER CODE BEGIN 2 */
 
-	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, RESET);
-	HAL_Delay(1);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-	HAL_Delay(1);
-	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, SET);
-	HAL_Delay(10);
+	/*handlers */
+	mcp = (mcp23s17_handle_t){
+		.addr_pins    = 0b000,
+				.user_data    = NULL,
+				.cs_low       = cs_low,
+				.cs_high      = cs_high,
+				.spi_receive = spi_recv,
+				.spi_transmit = spi_send,
+				.delay_ms     = delay_ms,
+				.mutex        = mutex
+	};
+	mcp23s17_init(&mcp);
 
-	uint8_t data[3];
 
-	data[0] = OPCODE;
-	data[1] = GPIOA_VALUE;
-	data[2] = 0xFF;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-
-	data[0] = OPCODE;
-	data[1] = GPIOB_VALUE;
-	data[2] = 0xFF;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-	data[0] = OPCODE;
-	data[1] = IODIRA_Reg;
-	data[2] = MODE_OUTPUT_MCP;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-
-	data[0] = OPCODE;
-	data[1] = IODIRB_Reg;
-	data[2] = MODE_OUTPUT_MCP;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-
-	//	HAL_Delay(100);
-
-	data[0] = OPCODE;
-	data[1] = GPIOA_VALUE;
-	data[2] = 0x55;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-
-	data[0] = OPCODE;
-	data[1] = GPIOB_VALUE;
-	data[2] = 0xAA;
-
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, RESET);
+//	HAL_Delay(1);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//	HAL_Delay(1);
+//	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, SET);
+//	HAL_Delay(10);
+//
+//	uint8_t data[3];
+//	uint8_t rx;
+//
+//	data[0] = OPCODE;
+//	data[1] = GPIOA_VALUE;
+//	data[2] = 0xFF;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//
+//	data[0] = OPCODE;
+//	data[1] = GPIOB_VALUE;
+//	data[2] = 0xFF;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//	data[0] = OPCODE;
+//	data[1] = IODIRA_Reg;
+//	data[2] = MODE_OUTPUT_MCP;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//
+//	data[0] = OPCODE;
+//	data[1] = IODIRB_Reg;
+//	data[2] = MODE_OUTPUT_MCP;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//
+//	//	HAL_Delay(100);
+//
+//	data[0] = OPCODE;
+//	data[1] = GPIOA_VALUE;
+//	data[2] = 0x55;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//
+//	data[0] = OPCODE;
+//	data[1] = GPIOB_VALUE;
+//	data[2] = 0xAA;
+//
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
+//	HAL_SPI_TransmitReceive(&hspi3, data, &rx, 3, 100);
+//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
+//	mcp23s17_init(&mcp);
 
 	//	  MCP23S17_Init();
 	//	  HAL_Delay(100);
