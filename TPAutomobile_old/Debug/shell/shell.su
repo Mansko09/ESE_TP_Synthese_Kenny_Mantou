@@ -1,8 +1,0 @@
-../shell/shell.c:15:13:uart_read	24	static
-../shell/shell.c:30:12:uart_write	24	static
-../shell/shell.c:39:12:sh_help	48	static
-../shell/shell.c:51:6:shell_init	24	static
-../shell/shell.c:65:5:shell_add	24	static
-../shell/shell.c:77:12:shell_exec	72	static
-../shell/shell.c:108:5:shell_run	32	static
-../shell/shell.c:154:6:shell_uart_rx_callback	24	static,ignoring_inline_asm
