@@ -36,7 +36,7 @@ int __io_putchar(int chr)
     HAL_UART_Transmit(&huart2, (uint8_t*)&chr, 1, HAL_MAX_DELAY);
     return chr;
 }
-
+```
 Le terminal série reçoit désormais les messages envoyés avec printf().
 
 ### 1.5 Activation de FreeRTOS
