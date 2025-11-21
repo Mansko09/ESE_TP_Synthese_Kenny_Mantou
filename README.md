@@ -1,44 +1,49 @@
-TP de Synthèse – Autoradio
+# TP de Synthèse – Autoradio  
+**Kenny & Mantou**
 
-Kenny & Mantou
+---
 
-1. Démarrage
-1.1 Création du projet
-Nous travaillons avec la NUCLEO-L476RG dans STM32CubeIDE.
-Tous les périphériques matériels ont été laissés avec leur configuration par défaut, et la BSP n’a pas été activée afin de conserver un projet minimal.
+## 1. Démarrage
 
-1.2 Test de la LED LD2
+### 1.1 Création du projet
+Nous travaillons avec la **NUCLEO-L476RG** dans **STM32CubeIDE**.  
+Tous les périphériques ont été laissés avec leur configuration par défaut et la **BSP n’a pas été activée** afin d’obtenir un projet minimal.
 
-Un premier test fonctionnel a validé le pilotage de la LED LD2 via un simple toggle.
-Cela permet de confirmer la bonne initialisation du GPIO et du processus de compilation/flash.
+---
 
-1.3 Test de l’USART2 (ST-Link interne)
+### 1.2 Test de la LED LD2
+Un premier test fonctionnel a validé le toggle simple de la LED LD2.  
+Cela permet de confirmer :
+- l’initialisation correcte du GPIO,
+- la chaîne compilation → flash → exécution.
 
-L’USART2 a été configuré afin d’utiliser la liaison série intégrée au ST-Link pour :
+---
 
-la communication avec un terminal série,
+### 1.3 Test de l’USART2 (ST-Link interne)
+L’USART2 a été configuré pour :
+- communiquer avec un terminal série,
+- afficher des messages,
+- intégrer un shell dans la suite.
 
-l’affichage des messages,
+---
 
-la future intégration du shell.
+### 1.4 Fonction `printf`
+Redirection du `printf` vers l’USART2 :
 
-1.4 Fonction printf
-
-Pour utiliser printf via l’UART, la redirection de la sortie standard a été implémentée via :
-
+```c
 int __io_putchar(int chr)
 {
-	HAL_UART_Transmit(&huart2, (uint8_t*)&chr, 1, HAL_MAX_DELAY);
-	return chr;
+    HAL_UART_Transmit(&huart2, (uint8_t*)&chr, 1, HAL_MAX_DELAY);
+    return chr;
 }
 
 Le terminal série reçoit désormais les messages envoyés avec printf().
 
-1.5 Activation de FreeRTOS
+### 1.5 Activation de FreeRTOS
 
 FreeRTOS a été activé dans STM32CubeIDE en mode CMSIS V1.
 
-1.6 Mise en place du Shell
+### 1.6 Mise en place du Shell
 a)b) Shell dans une tâche FreeRTOS et en mode interruption
 
 Shell exécuté dans une tâche dédiée avec une boucle de traitement.
@@ -48,8 +53,8 @@ c) Shell avec un driver structuré
 
 
 
-2. GPIO Expander & VU-Mètre
-2.1 Configuration
+## 2. GPIO Expander & VU-Mètre
+### 2.1 Configuration
 1) Référence du GPIO Expander
 
 Le GPIO Expander utilisé est un MCP23S17 (Microchip).
