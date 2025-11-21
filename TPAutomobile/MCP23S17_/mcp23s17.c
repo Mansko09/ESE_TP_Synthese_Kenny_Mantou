@@ -1,173 +1,142 @@
-#include "../MCP23S17_/mcp23s17.h"
+#include "main.h"
+// MCP23S17 Definitions
+#define MCP23S17_ADDR 0x00 // Assuming hardware address 000 (A2=A1=A0=0)
+#define MCP23S17_WRITE (0x40 | (MCP23S17_ADDR << 1)) // Opcode for write
+#define MCP23S17_READ (0x41 | (MCP23S17_ADDR << 1)) // Opcode for read
 
-#include "FreeRTOS.h"
-#include "task.h"
+// Registers (BANK=0 mode, default)
+#define MCP23S17_IODIRA 0x00
+#define MCP23S17_IODIRB 0x01
+#define MCP23S17_GPIOA 0x12
+#define MCP23S17_GPIOB 0x13
+#define MCP23S17_OLATA 0x14 // Optional latch registers
+#define MCP23S17_OLATB 0x15
+#define MCP23S17_IOCONA 0x0A // Configuration register
 
-// ---------------------------------------------------------------------------
-// Op-codes SPI
-// ---------------------------------------------------------------------------
-#define OPCODE_WRITE(addr)   (0x40 | (((addr) & 0x07) << 1))
-#define OPCODE_READ(addr)    (0x41 | (((addr) & 0x07) << 1))
+// SPI Handle (assuming defined in main or elsewhere)
+extern SPI_HandleTypeDef hspi3;
 
-// ---------------------------------------------------------------------------
-// Macro de prise de mutex (timeout 10 ticks)
-// ---------------------------------------------------------------------------
-#define TAKE_MUTEX(h) do { \
-    if ((h)->mutex) { \
-        if (xSemaphoreTake((h)->mutex, pdMS_TO_TICKS(10)) != pdTRUE) return 0; \
-    } \
-} while(0)
+// GPIO Pins
+#define MCP_CS_GPIO_PORT GPIOB
+#define MCP_CS_PIN GPIO_PIN_7
+#define MCP_RESET_GPIO_PORT GPIOA
+#define MCP_RESET_PIN GPIO_PIN_0
 
-#define RELEASE_MUTEX(h) do { \
-    if ((h)->mutex) xSemaphoreGive((h)->mutex); \
-} while(0)
+// Function Prototypes
+void MCP23S17_Init(void);
+void MCP23S17_WriteRegister(uint8_t reg, uint8_t value);
+uint8_t MCP23S17_ReadRegister(uint8_t reg);
+void MCP23S17_SetAllPinsHigh(void);
 
-// ---------------------------------------------------------------------------
-// Transfert SPI bas niveau
-// ---------------------------------------------------------------------------
-static int spi_transfer_bytes(mcp23s17_handle_t *h, const uint8_t *tx, uint8_t *rx, uint16_t len)
-{
-    if (!h || !h->spi_transfer || !h->cs_low || !h->cs_high) return 0;
+// Initialize MCP23S17
+void MCP23S17_Init(void) {
+// Set CS high initially
+HAL_GPIO_WritePin(MCP_CS_GPIO_PORT, MCP_CS_PIN, GPIO_PIN_SET);
 
-    h->cs_low(h->user_data);
-    h->spi_transfer(tx, rx, len, h->user_data);
-    h->cs_high(h->user_data);
-    return 1;
+// Reset MCP23S17: pull low for 1ms, then high
+HAL_GPIO_WritePin(MCP_RESET_GPIO_PORT, MCP_RESET_PIN, GPIO_PIN_RESET);
+HAL_Delay(1);
+HAL_GPIO_WritePin(MCP_RESET_GPIO_PORT, MCP_RESET_PIN, GPIO_PIN_SET);
+HAL_Delay(1);
+
+// Configure IOCON: Sequential operation disabled, etc. (default is fine, but set explicitly)
+MCP23S17_WriteRegister(MCP23S17_IOCONA, 0x20); // BANK=0, SEQOP=0, etc.
+
+// Set all pins as outputs
+MCP23S17_WriteRegister(MCP23S17_IODIRA, 0x00); // All GPIOA outputs
+MCP23S17_WriteRegister(MCP23S17_IODIRB, 0x00); // All GPIOB outputs
 }
 
-// ---------------------------------------------------------------------------
-// Init
-// ---------------------------------------------------------------------------
-int mcp23s17_init(mcp23s17_handle_t *h, int haen_enable)
+// Write to a register
+void MCP23S17_WriteRegister(uint8_t reg, uint8_t value) {
+uint8_t txData[3] = {MCP23S17_WRITE, reg, value};
+
+HAL_GPIO_WritePin(MCP_CS_GPIO_PORT, MCP_CS_PIN, GPIO_PIN_RESET);
+HAL_SPI_Transmit(&hspi3, txData, 3, HAL_MAX_DELAY);
+HAL_GPIO_WritePin(MCP_CS_GPIO_PORT, MCP_CS_PIN, GPIO_PIN_SET);
+}
+
+// Read from a register (optional, for verification)
+uint8_t MCP23S17_ReadRegister(uint8_t reg) {
+uint8_t txData[3] = {MCP23S17_READ, reg, 0x00};
+uint8_t rxData[3];
+
+HAL_GPIO_WritePin(MCP_CS_GPIO_PORT, MCP_CS_PIN, GPIO_PIN_RESET);
+HAL_SPI_TransmitReceive(&hspi3, txData, rxData, 3, HAL_MAX_DELAY);
+HAL_GPIO_WritePin(MCP_CS_GPIO_PORT, MCP_CS_PIN, GPIO_PIN_SET);
+
+return rxData[2];
+}
+
+// Set all pins to high
+void MCP23S17_SetAllPinsHigh(void) {
+MCP23S17_WriteRegister(MCP23S17_GPIOA, 0x1); // Set all GPIOA high
+MCP23S17_WriteRegister(MCP23S17_GPIOB, 0x1); // Set all GPIOB high
+// Alternatively, use OLAT if needed: MCP23S17_WriteRegister(MCP23S17_OLATA, 0xFF);
+}
+
+// Set all pins to low
+void MCP23S17_SetAllPinsLow(void) {
+MCP23S17_WriteRegister(MCP23S17_GPIOA, 0xFF); // Set all GPIOA low
+MCP23S17_WriteRegister(MCP23S17_GPIOB, 0xFF); // Set all GPIOB low
+}
+
+
+// Allume une LED (0 à 15)
+void MCP23S17_SetLed(uint8_t ledIndex)
 {
+    if (ledIndex > 15) return;  // Sécurité
 
-    if (!h || !h->delay_ms) return 0;
+    uint8_t reg, currentValue;
 
-    TAKE_MUTEX(h);
+    if (ledIndex < 8) {
+        // GPIOA
+        reg = MCP23S17_GPIOA;
+        currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOA);
 
-    h->delay_ms(10, h->user_data);
+        currentValue &= ~(1 << ledIndex);   // Mettre à 0.
 
-    uint8_t iocon = 0x00;
-    if (haen_enable) iocon |= MCP23S17_IOCON_HAEN;
-
-    // Écrire IOCON deux fois
-    int ret = mcp23s17_write_reg(h, MCP23S17_IOCON, iocon);
-    if (ret) {
-        h->delay_ms(1, h->user_data);
-        ret = mcp23s17_write_reg(h, MCP23S17_IOCON, iocon);
+        MCP23S17_WriteRegister(reg, currentValue);
     }
+    else {
+        // GPIOB
+        reg = MCP23S17_GPIOB;
+        ledIndex -= 8;  // Ramener à 0-7
+        currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOB);
 
-    // Tout en entrée, pull-ups off
-    if (ret) ret = mcp23s17_write_reg(h, MCP23S17_IODIRA, 0xFF);
-    if (ret) ret = mcp23s17_write_reg(h, MCP23S17_IODIRB, 0xFF);
-    if (ret) ret = mcp23s17_write_reg(h, MCP23S17_GPPUA, 0x00);
-    if (ret) ret = mcp23s17_write_reg(h, MCP23S17_GPPUB, 0x00);
+        currentValue &= ~(1 << ledIndex);
 
-    RELEASE_MUTEX(h);
-    return ret;
+        MCP23S17_WriteRegister(reg, currentValue);
+    }
 }
 
-// ---------------------------------------------------------------------------
-// Registres
-// ---------------------------------------------------------------------------
-int mcp23s17_write_reg(mcp23s17_handle_t *h, uint8_t reg, uint8_t value)
+void MCP23S17_ClearLed(uint8_t ledIndex)
 {
-    if (!h) return 0;
-    TAKE_MUTEX(h);
+    if (ledIndex > 15) return;  // Sécurité
 
-    uint8_t tx[3] = { OPCODE_WRITE(h->addr_pins), reg, value };
-    int ret = spi_transfer_bytes(h, tx, NULL, 3);
+    uint8_t reg, currentValue;
 
-    RELEASE_MUTEX(h);
-    return ret;
+    if (ledIndex < 8) {
+        // GPIOA
+        reg = MCP23S17_GPIOA;
+        currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOA);
+
+        currentValue |= (1 << ledIndex);   // Mettre à 0.
+
+        MCP23S17_WriteRegister(reg, currentValue);
+    }
+    else {
+        // GPIOB
+        reg = MCP23S17_GPIOB;
+        ledIndex -= 8;  // Ramener à 0-7
+        currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOB);
+
+        currentValue |= (1 << ledIndex);
+
+        MCP23S17_WriteRegister(reg, currentValue);
+    }
 }
 
-int mcp23s17_read_reg(mcp23s17_handle_t *h, uint8_t reg, uint8_t *value)
-{
-    if (!h || !value) return 0;
-    TAKE_MUTEX(h);
-
-    uint8_t tx[2] = { OPCODE_READ(h->addr_pins), reg };
-    uint8_t rx[2];
-    int ret = spi_transfer_bytes(h, tx, rx, 2);
-    if (ret) *value = rx[1];
-
-    RELEASE_MUTEX(h);
-    return ret;
-}
-
-// ---------------------------------------------------------------------------
-// API haut niveau
-// ---------------------------------------------------------------------------
-int mcp23s17_pin_mode(mcp23s17_handle_t *h, uint8_t pin, int input)
-{
-    uint8_t reg = (pin < 8) ? MCP23S17_IODIRA : MCP23S17_IODIRB;
-    uint8_t bit = 1 << (pin & 7);
-    uint8_t val;
-    if (!mcp23s17_read_reg(h, reg, &val)) return 0;
-    if (input) val |= bit; else val &= ~bit;
-    return mcp23s17_write_reg(h, reg, val);
-}
-
-int mcp23s17_pullup(mcp23s17_handle_t *h, uint8_t pin, int enable)
-{
-    uint8_t reg = (pin < 8) ? MCP23S17_GPPUA : MCP23S17_GPPUB;
-    uint8_t bit = 1 << (pin & 7);
-    uint8_t val;
-    if (!mcp23s17_read_reg(h, reg, &val)) return 0;
-    if (enable) val |= bit; else val &= ~bit;
-    return mcp23s17_write_reg(h, reg, val);
-}
-
-int mcp23s17_digital_write(mcp23s17_handle_t *h, uint8_t pin, int level)
-{
-    uint8_t reg = (pin < 8) ? MCP23S17_GPIOA : MCP23S17_GPIOB;
-    uint8_t bit = 1 << (pin & 7);
-    uint8_t val;
-    if (!mcp23s17_read_reg(h, reg, &val)) return 0;
-    if (level) val |= bit; else val &= ~bit;
-    return mcp23s17_write_reg(h, reg, val);
-}
-
-int mcp23s17_digital_read(mcp23s17_handle_t *h, uint8_t pin, int *level)
-{
-    uint8_t reg = (pin < 8) ? MCP23S17_GPIOA : MCP23S17_GPIOB;
-    uint8_t val;
-    if (!mcp23s17_read_reg(h, reg, &val)) return 0;
-    if (level) *level = (val >> (pin & 7)) & 1;
-    return 1;
-}
-
-int mcp23s17_write_port(mcp23s17_handle_t *h, mcp23s17_port_t port, uint8_t value)
-{
-    uint8_t reg = (port == MCP23S17_PORTA) ? MCP23S17_GPIOA : MCP23S17_GPIOB;
-    return mcp23s17_write_reg(h, reg, value);
-}
-
-int mcp23s17_read_port(mcp23s17_handle_t *h, mcp23s17_port_t port, uint8_t *value)
-{
-    uint8_t reg = (port == MCP23S17_PORTA) ? MCP23S17_GPIOA : MCP23S17_GPIOB;
-    return mcp23s17_read_reg(h, reg, value);
-}
-
-int mcp23s17_int_enable(mcp23s17_handle_t *h, uint8_t pin, int enable)
-{
-    uint8_t reg = (pin < 8) ? MCP23S17_GPINTENA : MCP23S17_GPINTENB;
-    uint8_t bit = 1 << (pin & 7);
-    uint8_t val;
-    if (!mcp23s17_read_reg(h, reg, &val)) return 0;
-    if (enable) val |= bit; else val &= ~bit;
-    return mcp23s17_write_reg(h, reg, val);
-}
-
-int mcp23s17_int_get_captured(mcp23s17_handle_t *h, mcp23s17_port_t port, uint8_t *value)
-{
-    uint8_t reg = (port == MCP23S17_PORTA) ? MCP23S17_INTCAPA : MCP23S17_INTCAPB;
-    return mcp23s17_read_reg(h, reg, value);
-}
-
-int mcp23s17_int_get_flag(mcp23s17_handle_t *h, mcp23s17_port_t port, uint8_t *flag)
-{
-    uint8_t reg = (port == MCP23S17_PORTA) ? MCP23S17_INTFA : MCP23S17_INTFB;
-    return mcp23s17_read_reg(h, reg, flag);
-}
+// In your main function, after HAL_Init() and SPI3 init:
+// MCP23S17_Init();
+// Then call MCP23S17_SetAllPinsHigh() when needed.

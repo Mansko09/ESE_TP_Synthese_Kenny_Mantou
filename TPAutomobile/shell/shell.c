@@ -140,7 +140,7 @@ int shell_run(h_shell_t * h_shell) {
 				//other characters
 			default:
 				//only store characters if buffer has space
-				if (pos < BUFFER_SIZE) {
+				if (pos < BUFFER_SIZE-1) {
 					uart_write(h_shell, &c, 1);
 					h_shell->cmd_buffer[pos++] = c; //store
 				}
