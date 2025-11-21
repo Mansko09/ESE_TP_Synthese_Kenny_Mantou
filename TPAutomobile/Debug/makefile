@@ -66,8 +66,8 @@ all: main-build
 main-build: TPAutomobile.elf secondary-outputs
 
 # Tool invocations
-TPAutomobile.elf TPAutomobile.map: $(OBJS) $(USER_OBJS) /home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "TPAutomobile.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TPAutomobile.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+TPAutomobile.elf TPAutomobile.map: $(OBJS) $(USER_OBJS) /home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "TPAutomobile.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TPAutomobile.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

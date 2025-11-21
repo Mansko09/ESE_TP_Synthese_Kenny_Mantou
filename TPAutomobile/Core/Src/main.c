@@ -79,26 +79,26 @@ int __io_putchar(int chr)
 	return chr;
 }
 
-//uint8_t drv_uart_receive(char * pData, uint16_t size)
-//{
-//	HAL_UART_Receive(&huart2, (uint8_t*)pData, size, HAL_MAX_DELAY);
-//	return 0;
-//}
-//
-//uint8_t drv_uart_transmit(char * pData, uint16_t size)
-//{
-//	HAL_UART_Transmit(&huart2, (uint8_t*)pData, size, HAL_MAX_DELAY);
-//	return 0;
-//}
-//
-//h_shell_t h_shell =
-//{
-//		.drv_shell = {
-//				.drv_shell_transmit = drv_uart_transmit,
-//				.drv_shell_receive = drv_uart_receive
-//		}
-//};
-//
+uint8_t drv_uart_receive(char * pData, uint16_t size)
+{
+	HAL_UART_Receive(&huart2, (uint8_t*)pData, size, HAL_MAX_DELAY);
+	return 0;
+}
+
+uint8_t drv_uart_transmit(char * pData, uint16_t size)
+{
+	HAL_UART_Transmit(&huart2, (uint8_t*)pData, size, HAL_MAX_DELAY);
+	return 0;
+}
+
+h_shell_t h_shell =
+{
+		.drv_shell = {
+				.drv_shell_transmit = drv_uart_transmit,
+				.drv_shell_receive = drv_uart_receive
+		}
+};
+
 //// Callbacks MCP23S17
 //static void cs_low(void *d)   { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, GPIO_PIN_RESET); }
 //static void cs_high(void *d)  { HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, GPIO_PIN_SET); }
@@ -179,13 +179,12 @@ int chenillard(h_shell_t * h_shell, int argc, char ** argv)
 		return -1;
 	}
 	int a = atoi(argv[1]);
-	if (a<15){
+	if (a <= 15){
+		MCP23S17_SetAllPinsLow();
 		MCP23S17_SetLed(a);
 		printf("Led %d \r\n", a);
 	}
 
-
-	printf("No entiendo que quieres \r\n");
 	return 0;
 }
 
@@ -245,8 +244,9 @@ int main(void)
 
 	/* USER CODE BEGIN Init */
 
-	/* USER CODE END Ini//	  MCP23S17_Init();
-//	  HAL_Delay(100);t */
+	/* USER CODE END Ini//
+
+
 
 	/* Configure the system clock */
 	SystemClock_Config();
@@ -266,6 +266,7 @@ int main(void)
 	MX_USART2_UART_Init();
 	MX_USB_OTG_FS_PCD_Init();
 	/* USER CODE BEGIN 2 */
+
 	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, RESET);
 	HAL_Delay(1);
 	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
@@ -328,31 +329,31 @@ int main(void)
 	//	  HAL_Delay(100);
 	//	  MCP23S17_SetAllPinsHigh();
 	//	  MCP23S17_SetLed(11);
-	//
-	//	//  if (xTaskCreate(task_xpander, "xpander", 256, NULL, 3, NULL) != pdPASS)
-	//	//    	{
-	//	//    		printf("Error creating task xpander\r\n");
-	//	//    		Error_Handler();
-	//	//    	}
-	//	if (xTaskCreate(task_shell, "Shell", 512, NULL, 1, NULL) != pdPASS)
-	//	{
-	//		printf("Error creating task Shell\r\n");
-	//		Error_Handler();
-	//	}
-	//
-	//	if (xTaskCreate(task_led, "LED", 128, NULL, 2, NULL) != pdPASS)
-	//	{
-	//		printf("Error creating task LED\r\n");
-	//		Error_Handler();
-	//	}
-	//	vTaskStartScheduler();
+
+	//  if (xTaskCreate(task_xpander, "xpander", 256, NULL, 3, NULL) != pdPASS)
+	//    	{
+	//    		printf("Error creating task xpander\r\n");
+	//    		Error_Handler();
+	//    	}
+	if (xTaskCreate(task_shell, "Shell", 512, NULL, 1, NULL) != pdPASS)
+	{
+		printf("Error creating task Shell\r\n");
+		Error_Handler();
+	}
+
+	if (xTaskCreate(task_led, "LED", 128, NULL, 2, NULL) != pdPASS)
+	{
+		printf("Error creating task LED\r\n");
+		Error_Handler();
+	}
+	vTaskStartScheduler();
 	/* USER CODE END 2 */
 
 	/* Call init function for freertos objects (in cmsis_os2.c) */
-	//	MX_FREERTOS_Init();
+	MX_FREERTOS_Init();
 	//
 	//	/* Start scheduler */
-	//	osKernelStart();
+	osKernelStart();
 
 	/* We should never get here as control is now taken by the scheduler */
 

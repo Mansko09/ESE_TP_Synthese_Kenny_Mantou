@@ -54,8 +54,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Core/Inc/i2c.h ../Core/Inc/main.h ../Core/Inc/sai.h ../Core/Inc/spi.h \
  ../Core/Inc/usart.h ../Core/Inc/usb_otg.h ../Core/Inc/gpio.h \
- /home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/shell/shell.h \
- /home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/shell/../MCP23S17_/mcp23s17.h
+ /home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/shell/shell.h \
+ /home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/shell/../MCP23S17_/mcp23s17.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -117,5 +117,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/usart.h:
 ../Core/Inc/usb_otg.h:
 ../Core/Inc/gpio.h:
-/home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/shell/shell.h:
-/home/mantoumben/STM32CubeIDE/workspace_1.19.0/TPAutomobile/shell/../MCP23S17_/mcp23s17.h:
+/home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/shell/shell.h:
+/home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/shell/../MCP23S17_/mcp23s17.h:
