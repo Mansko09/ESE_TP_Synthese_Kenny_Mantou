@@ -79,3 +79,17 @@ First bit : MSB First
 Clock polarity/phase : Mode 0
 
 Chip Select (nCS) : PB7 en Output Push-Pull
+
+### 2.2 Tests
+
+![Toutes_Les_Leds](https://github.com/user-attachments/assets/8e0796d1-5078-4c25-ad21-d0c07724401d)
+![Une_led](https://github.com/user-attachments/assets/aa7a82f1-5ddb-40cc-85c5-99633ecac2b1)
+
+
+## 3. Le CODEC Audio SGTL5000
+### 3.1 Configuration préalable 
+1) L'I2C utilise les pins PB10(SCL) et PB11(SDA). Cela correspond à l'I2C2. 
+
+### 3.2 Configuration du CODEC par l'I2C 
+1)
+![Signal_horloge_MCLK](https://github.com/user-attachments/assets/fbdcb83b-81f4-4ca4-9fd9-5b88bf760a36)
