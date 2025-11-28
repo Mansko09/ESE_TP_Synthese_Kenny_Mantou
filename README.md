@@ -81,9 +81,10 @@ Clock polarity/phase : Mode 0
 Chip Select (nCS) : PB7 en Output Push-Pull
 
 ### 2.2 Tests
+![Toutes_Les_Leds](https://github.com/user-attachments/assets/cd7800a6-c962-4c1d-abff-19b98b26e7c1)
 
-![Toutes_Les_Leds](https://github.com/user-attachments/assets/8e0796d1-5078-4c25-ad21-d0c07724401d)
-![Une_led](https://github.com/user-attachments/assets/aa7a82f1-5ddb-40cc-85c5-99633ecac2b1)
+![Une_led](https://github.com/user-attachments/assets/3fe16403-e0ff-4fff-a76d-b7a572f37050)
+
 
 
 ## 3. Le CODEC Audio SGTL5000
@@ -92,4 +93,4 @@ Chip Select (nCS) : PB7 en Output Push-Pull
 
 ### 3.2 Configuration du CODEC par l'I2C 
 1)
-![Signal_horloge_MCLK](https://github.com/user-attachments/assets/fbdcb83b-81f4-4ca4-9fd9-5b88bf760a36)
+![Signal_horloge_MCLK](https://github.com/user-attachments/assets/c3e19b24-1870-4d2f-a8de-61d600c8f278)
