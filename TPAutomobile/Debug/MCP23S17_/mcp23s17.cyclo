@@ -2,4 +2,7 @@
 ../MCP23S17_/mcp23s17.c:40:5:spi_recv_bytes	5
 ../MCP23S17_/mcp23s17.c:53:5:mcp23s17_init	1
 ../MCP23S17_/mcp23s17.c:80:5:mcp23s17_write_reg	1
-../MCP23S17_/mcp23s17.c:95:5:mcp23s17_read_reg	7
+../MCP23S17_/mcp23s17.c:95:5:mcp23s17_read_reg	1
+../MCP23S17_/mcp23s17.c:104:6:mcp23s17_SetAllON	1
+../MCP23S17_/mcp23s17.c:110:6:mcp23s17_SetAllOFF	1
+../MCP23S17_/mcp23s17.c:117:6:mcp23s17_SetLed	3

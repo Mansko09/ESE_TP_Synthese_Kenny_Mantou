@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "dma.h"
 #include "i2c.h"
 #include "sai.h"
 #include "spi.h"
@@ -30,7 +31,9 @@
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "stdlib.h"
+#include <stdbool.h>
 #include "shell.h"
+#include "sgtl5000.h"
 #include "../MCP23S17_/mcp23s17.h"
 
 /* USER CODE END Includes */
@@ -38,21 +41,33 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/* MCP23S17 GPIO EXPANDER */
 #define OPCODE 0x40
 #define IODIRA_Reg 0x00
 #define IODIRB_Reg 0x01
 #define MODE_OUTPUT_MCP 0x00
 #define GPIOA_VALUE 0x12
 #define GPIOB_VALUE 0x13
+
+/* SGTL5000 AUDIO Codec */
+#define AUDIO_BUFFER_SIZE 4096
+#define AUDIO_BUFFER_BYTES (AUDIO_BUFFER_SIZE * 2 * 2)
+#define SGTL5000_DEVADDRESS 0x14
+#define SGTL5000_ID_REG 0x00
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+static int16_t sai_rx_dma_buffer[AUDIO_BUFFER_BYTES] ;
+static int16_t sai_tx_dma_buffer[AUDIO_BUFFER_BYTES] ;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -60,7 +75,17 @@
 /* USER CODE BEGIN PV */
 h_shell_t h_shell;
 mcp23s17_handle_t mcp;
+h_sgtl5000_t h_sgtl5000;
+
+// FreeRTOS
 SemaphoreHandle_t mutex;
+
+
+volatile bool tx_half_ready = false;
+volatile bool tx_full_ready = false;
+volatile bool rx_half_ready = false;
+volatile bool rx_full_ready = false;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,28 +133,29 @@ static void spi_send(const uint8_t *tx, uint8_t *rx, uint16_t len, void *d)
 }
 static void spi_recv(const uint8_t *tx, uint8_t *rx, uint16_t len, void *d)
 {
-	HAL_SPI_Transmit(&hspi3, rx, len, 100);
+	HAL_SPI_TransmitReceive(&hspi3, tx, rx, len, 100);
+
 }
 static void delay_ms(uint32_t ms, void *d) { vTaskDelay(pdMS_TO_TICKS(ms)); }
 
 
-//void task_xpander(void * unused)
-//{
-//	mcp23s17_write_reg(&mcp, MCP23S17_IODIRA, 0x00);  // Port A tout sortie
-//	mcp23s17_write_reg(&mcp, MCP23S17_IODIRB, 0x00);  // Port B tout sortie
-//	vTaskDelay(1000);
-//	mcp23s17_write_reg(&mcp, MCP23S17_GPIOA,  0xFF);  // Port A allumé
-//	mcp23s17_write_reg(&mcp, MCP23S17_GPIOB,  0xFF);  // Port B allumé
-//	vTaskDelay(1000);
-//	for (;;){
-//		mcp23s17_digital_write(&mcp,  0, 1);  // GPA0 = 1
-//		mcp23s17_digital_write(&mcp,  8, 1);  // GPB0 = 1
-//		vTaskDelay(500);
-//		mcp23s17_digital_write(&mcp,  0, 0);  // GPA0 = 1
-//		mcp23s17_digital_write(&mcp,  8, 0);  // GPB0 = 1
-//		vTaskDelay(500);
-//	}
-//}
+void task_xpander(void * unused)
+{
+	mcp23s17_write_reg(&mcp, MCP23S17_IODIRA, 0x00);  // Port A tout sortie
+	mcp23s17_write_reg(&mcp, MCP23S17_IODIRB, 0x00);  // Port B tout sortie
+	vTaskDelay(1000);
+	mcp23s17_write_reg(&mcp, MCP23S17_GPIOA,  0xFF);  // Port A allumé
+	mcp23s17_write_reg(&mcp, MCP23S17_GPIOB,  0xFF);  // Port B allumé
+	vTaskDelay(1000);
+	for (;;){
+		mcp23s17_digital_write(&mcp,  0, 1);  // GPA0 = 1
+		mcp23s17_digital_write(&mcp,  8, 1);  // GPB0 = 1
+		vTaskDelay(500);
+		mcp23s17_digital_write(&mcp,  0, 0);  // GPA0 = 1
+		mcp23s17_digital_write(&mcp,  8, 0);  // GPB0 = 1
+		vTaskDelay(500);
+	}
+}
 
 int fonction(h_shell_t * h_shell, int argc, char ** argv)
 {
@@ -161,6 +187,7 @@ int addition(h_shell_t * h_shell, int argc, char ** argv)
 
 	return 0;
 }
+
 int chenillard(h_shell_t * h_shell, int argc, char ** argv)
 {
 	if (argc != 2)
@@ -170,8 +197,8 @@ int chenillard(h_shell_t * h_shell, int argc, char ** argv)
 	}
 	int a = atoi(argv[1]);
 	if (a <= 15){
-		//		MCP23S17_SetAllPinsLow();
-		//		MCP23S17_SetLed(a);
+		mcp23s17_SetAllOFF(&mcp);
+		mcp23s17_SetLed(&mcp, a);
 		printf("Led %d \r\n", a);
 	}
 
@@ -190,6 +217,39 @@ void task_shell(void * unused)
 	// Ici elle ne retourne pas parce qu'il y a une boucle infinie dans shell_run();
 }
 
+void audio_task(void *argument)
+{
+	// Démarre le SAI Tx (et Rx si tu veux)
+	HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*)sai_tx_dma_buffer, AUDIO_BUFFER_BYTES);
+
+	for(;;)
+	{
+		// Attend que la moitié ou la totalité du buffer soit libre
+		if (tx_half_ready || tx_full_ready)
+		{
+			int16_t *buf_to_fill;
+			uint32_t samples_to_fill;
+
+			if (tx_half_ready)
+			{
+				tx_half_ready = false;
+				buf_to_fill = sai_tx_dma_buffer;
+				samples_to_fill = AUDIO_BUFFER_SAMPLES / 2;  // moitié du buffer
+			}
+			else
+			{
+				tx_full_ready = false;
+				buf_to_fill = sai_tx_dma_buffer + AUDIO_BUFFER_SAMPLES;
+				samples_to_fill = AUDIO_BUFFER_SAMPLES / 2;
+			}
+
+			// Génère un beau triangle à 440 Hz (La)
+			fill_triangle_wave(buf_to_fill, samples_to_fill, 440.0f, 48000, 12000);
+		}
+
+		vTaskDelay(1);
+	}
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -200,12 +260,61 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai)
+{
+	tx_half_ready = true;
+}
+
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
+{
+	tx_full_ready = true;
+}
 void task_led(void * unused)
 {
 	for (;;)
 	{
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 		vTaskDelay(250);
+	}
+}
+
+/**
+ * @brief Génère une onde triangulaire stéréo dans le buffer TX
+ * @param frequency_hz : fréquence du triangle (ex: 440 pour La)
+ * @param sample_rate  : 48000 typiquement
+ * @param amplitude    : 0 à 32767 (32767 = pleine échelle sans clip)
+ */
+void fill_triangle_wave(int16_t *buffer, uint32_t buffer_samples_stereo,
+		float frequency_hz, uint32_t sample_rate, int16_t amplitude)
+{
+	static uint32_t phase = 0;          // garde la phase entre les appels (continuité parfaite)
+	uint32_t samples_per_period = (uint32_t)((float)sample_rate / frequency_hz);
+
+	if (samples_per_period < 4) samples_per_period = 4;  // sécurité
+
+	for (uint32_t i = 0; i < buffer_samples_stereo; i += 2)
+	{
+		// Position dans le cycle : 0 → samples_per_period-1
+		uint32_t pos = phase % samples_per_period;
+
+		// Triangle : monte de -amp à +amp puis redescend
+		int32_t sample;
+		if (pos < samples_per_period / 2)
+		{
+			// Phase montante : -amp → +amp
+			sample = -amplitude + (int32_t)((4 * amplitude * pos) / samples_per_period);
+		}
+		else
+		{
+			// Phase descendante : +amp → -amp
+			sample = amplitude - (int32_t)((4 * amplitude * (pos - samples_per_period/2)) / samples_per_period);
+		}
+
+		// Stéréo identique (tu peux faire gauche/droite différent si tu veux)
+		buffer[i]   = (int16_t)sample;   // Gauche
+		buffer[i+1] = (int16_t)sample;   // Droite
+
+		phase++;
 	}
 }
 
@@ -224,6 +333,7 @@ int main(void)
 {
 
 	/* USER CODE BEGIN 1 */
+
 
 	/* USER CODE END 1 */
 
@@ -248,13 +358,14 @@ int main(void)
 
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
+	MX_DMA_Init();
 	MX_I2C2_Init();
 	MX_SAI2_Init();
 	MX_SPI3_Init();
 	MX_USART2_UART_Init();
 	MX_USB_OTG_FS_PCD_Init();
 	/* USER CODE BEGIN 2 */
-
+	__HAL_SAI_ENABLE(&hsai_BlockA2);
 	/*handlers */
 	mcp = (mcp23s17_handle_t){
 		.addr_pins    = 0b000,
@@ -269,70 +380,12 @@ int main(void)
 	mcp23s17_init(&mcp);
 
 
-//	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, RESET);
-//	HAL_Delay(1);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//	HAL_Delay(1);
-//	HAL_GPIO_WritePin(vu_nRST_GPIO_Port, vu_nRST_Pin, SET);
-//	HAL_Delay(10);
-//
-//	uint8_t data[3];
-//	uint8_t rx;
-//
-//	data[0] = OPCODE;
-//	data[1] = GPIOA_VALUE;
-//	data[2] = 0xFF;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//
-//	data[0] = OPCODE;
-//	data[1] = GPIOB_VALUE;
-//	data[2] = 0xFF;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//	data[0] = OPCODE;
-//	data[1] = IODIRA_Reg;
-//	data[2] = MODE_OUTPUT_MCP;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//
-//	data[0] = OPCODE;
-//	data[1] = IODIRB_Reg;
-//	data[2] = MODE_OUTPUT_MCP;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//
-//	//	HAL_Delay(100);
-//
-//	data[0] = OPCODE;
-//	data[1] = GPIOA_VALUE;
-//	data[2] = 0x55;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_Transmit(&hspi3, data, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//
-//	data[0] = OPCODE;
-//	data[1] = GPIOB_VALUE;
-//	data[2] = 0xAA;
-//
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, RESET);
-//	HAL_SPI_TransmitReceive(&hspi3, data, &rx, 3, 100);
-//	HAL_GPIO_WritePin(VU_nCS_GPIO_Port, VU_nCS_Pin, SET);
-//	mcp23s17_init(&mcp);
+	h_sgtl5000.hi2c = &hi2c2;
+	h_sgtl5000.dev_address = SGTL5000_DEVADDRESS;
+	sgtl5000_init(&h_sgtl5000);
 
-	//	  MCP23S17_Init();
-	//	  HAL_Delay(100);
-	//	  MCP23S17_SetAllPinsHigh();
-	//	  MCP23S17_SetLed(11);
+	//  HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t *) sai_tx_dma_buffer, AUDIO_BUFFER_BYTES);
+	//	HAL_SAI_Receive_DMA(&hsai_BlockB2, (uint8_t *) sai_rx_dma_buffer, AUDIO_BUFFER_BYTES);
 
 	//  if (xTaskCreate(task_xpander, "xpander", 256, NULL, 3, NULL) != pdPASS)
 	//    	{
@@ -350,13 +403,20 @@ int main(void)
 		printf("Error creating task LED\r\n");
 		Error_Handler();
 	}
+
+	if (xTaskCreate(audio_task, "AUDIO", 512, NULL, 3, NULL) != pdPASS)
+	{
+		printf("Error creating task LED\r\n");
+		Error_Handler();
+	}
+
 	vTaskStartScheduler();
 	/* USER CODE END 2 */
 
 	/* Call init function for freertos objects (in cmsis_os2.c) */
 	MX_FREERTOS_Init();
-	//
-	//	/* Start scheduler */
+
+	/* Start scheduler */
 	osKernelStart();
 
 	/* We should never get here as control is now taken by the scheduler */
@@ -406,9 +466,9 @@ void SystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
 	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 16;
+	RCC_OscInitStruct.PLL.PLLN = 20;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
 	{
@@ -424,7 +484,7 @@ void SystemClock_Config(void)
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -440,16 +500,14 @@ void PeriphCommonClock_Config(void)
 
 	/** Initializes the peripherals clock
 	 */
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_USB;
-	PeriphClkInit.Sai2ClockSelection = RCC_SAI2CLKSOURCE_PLLSAI1;
-	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLLSAI1;
-	PeriphClkInit.PLLSAI1.PLLSAI1Source = RCC_PLLSOURCE_MSI;
-	PeriphClkInit.PLLSAI1.PLLSAI1M = 1;
-	PeriphClkInit.PLLSAI1.PLLSAI1N = 24;
-	PeriphClkInit.PLLSAI1.PLLSAI1P = RCC_PLLP_DIV7;
-	PeriphClkInit.PLLSAI1.PLLSAI1Q = RCC_PLLQ_DIV4;
-	PeriphClkInit.PLLSAI1.PLLSAI1R = RCC_PLLR_DIV2;
-	PeriphClkInit.PLLSAI1.PLLSAI1ClockOut = RCC_PLLSAI1_SAI1CLK|RCC_PLLSAI1_48M2CLK;
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI2;
+	PeriphClkInit.Sai2ClockSelection = RCC_SAI2CLKSOURCE_PLLSAI2;
+	PeriphClkInit.PLLSAI2.PLLSAI2Source = RCC_PLLSOURCE_MSI;
+	PeriphClkInit.PLLSAI2.PLLSAI2M = 1;
+	PeriphClkInit.PLLSAI2.PLLSAI2N = 26;
+	PeriphClkInit.PLLSAI2.PLLSAI2P = RCC_PLLP_DIV17;
+	PeriphClkInit.PLLSAI2.PLLSAI2R = RCC_PLLR_DIV2;
+	PeriphClkInit.PLLSAI2.PLLSAI2ClockOut = RCC_PLLSAI2_SAI2CLK;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
 	{
 		Error_Handler();

@@ -56,7 +56,7 @@ void shell_init(h_shell_t * h_shell) {
 
 	h_shell->shell_func_list_size = 0;
 
-	size = snprintf (h_shell->print_buffer, BUFFER_SIZE, "\r\n\r\n===== Monsieur Shell v0.2 =====\r\n");
+	size = snprintf (h_shell->print_buffer, BUFFER_SIZE, "\r\n\r\n===== Miss Shella w0.2 =====\r\n");
 	uart_write(h_shell, h_shell->print_buffer, size);
 
 	shell_add(h_shell, 'h', sh_help, "Help");

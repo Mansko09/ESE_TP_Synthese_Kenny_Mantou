@@ -92,88 +92,54 @@ int mcp23s17_write_reg(mcp23s17_handle_t *h, uint8_t reg, uint8_t value)
 	return ret;
 }
 
-int mcp23s17_read_reg(mcp23s17_handle_t *h, uint8_t reg, uint8_t *value)
+int mcp23s17_read_reg(mcp23s17_handle_t *h, uint8_t reg)
 {
-	if (!h || !value) return 0;
-	TAKE_MUTEX(h);
+	uint8_t tx[3] = { MCP23S17_READ, reg, 0x00 };
+	uint8_t rx[3];
+	spi_recv_bytes(h, tx, rx, 3);
 
-	uint8_t tx[2] = { MCP23S17_READ, reg };
-	uint8_t rx[2];
-	int ret = spi_recv_bytes(h, tx, rx, 2);
-	if (ret) *value = rx[1];
-
-	RELEASE_MUTEX(h);
-	return ret;
+	return rx[3];
 }
 
-//// Set all pins to high
-//void MCP23S17_SetAllPinsHigh(void) {
-//	MCP23S17_WriteRegister(MCP23S17_GPIOA, 0x1); // Set all GPIOA high
-//	MCP23S17_WriteRegister(MCP23S17_GPIOB, 0x1); // Set all GPIOB high
-//	// Alternatively, use OLAT if needed: MCP23S17_WriteRegister(MCP23S17_OLATA, 0xFF);
-//}
-//
-//// Set all pins to low
-//void MCP23S17_SetAllPinsLow(void) {
-//	MCP23S17_WriteRegister(MCP23S17_GPIOA, 0xFF); // Set all GPIOA low
-//	MCP23S17_WriteRegister(MCP23S17_GPIOB, 0xFF); // Set all GPIOB low
-//}
-//
-//
-//// Allume une LED (0 à 15)
-//void MCP23S17_SetLed(uint8_t ledIndex)
-//{
-//	if (ledIndex > 15) return;  // Sécurité
-//
-//	uint8_t reg, currentValue;
-//
-//	if (ledIndex < 8) {
-//		// GPIOA
-//		reg = MCP23S17_GPIOA;
-//		currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOA);
-//
-//		currentValue &= ~(1 << ledIndex);   // Mettre à 0.
-//
-//		MCP23S17_WriteRegister(reg, currentValue);
-//	}
-//	else {
-//		// GPIOB
-//		reg = MCP23S17_GPIOB;
-//		ledIndex -= 8;  // Ramener à 0-7
-//		currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOB);
-//
-//		currentValue &= ~(1 << ledIndex);
-//
-//		MCP23S17_WriteRegister(reg, currentValue);
-//	}
-//}
-//
-//void MCP23S17_ClearLed(uint8_t ledIndex)
-//{
-//	if (ledIndex > 15) return;  // Sécurité
-//
-//	uint8_t reg, currentValue;
-//
-//	if (ledIndex < 8) {
-//		// GPIOA
-//		reg = MCP23S17_GPIOA;
-//		currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOA);
-//
-//		currentValue |= (1 << ledIndex);   // Mettre à 0.
-//
-//		MCP23S17_WriteRegister(reg, currentValue);
-//	}
-//	else {
-//		// GPIOB
-//		reg = MCP23S17_GPIOB;
-//		ledIndex -= 8;  // Ramener à 0-7
-//		currentValue = MCP23S17_ReadRegister(MCP23S17_GPIOB);
-//
-//		currentValue |= (1 << ledIndex);
-//
-//		MCP23S17_WriteRegister(reg, currentValue);
-//	}
-//}
+void mcp23s17_SetAllON(mcp23s17_handle_t *h)
+{
+	mcp23s17_write_reg(h, MCP23S17_GPIOA, 0x01);
+	mcp23s17_write_reg(h, MCP23S17_GPIOB, 0x01);
+}
+
+void mcp23s17_SetAllOFF(mcp23s17_handle_t *h)
+{
+	mcp23s17_write_reg(h, MCP23S17_GPIOA, 0xFF);
+	mcp23s17_write_reg(h, MCP23S17_GPIOB, 0xFF);
+}
+
+// Allume une LED (0 à 15)
+void mcp23s17_SetLed(mcp23s17_handle_t *h, uint8_t ledIndex)
+{
+	if (ledIndex > 15) return;  // Sécurité
+
+	uint8_t reg,currentValue;
+
+	if (ledIndex < 8) {
+		// GPIOA
+		reg = MCP23S17_GPIOA;
+		currentValue = mcp23s17_read_reg(h, MCP23S17_GPIOA);
+
+		currentValue &= ~(1 << ledIndex);   // Mettre à 0.
+
+		mcp23s17_write_reg(h, reg, currentValue);
+	}
+	else {
+		// GPIOB
+		reg = MCP23S17_GPIOB;
+		ledIndex -= 8;  // Ramener à 0-7
+		currentValue = mcp23s17_read_reg(h, MCP23S17_GPIOB);
+
+		currentValue &= ~(1 << ledIndex);
+
+		mcp23s17_write_reg(h, reg, currentValue);
+	}
+}
 
 // In your main function, after HAL_Init() and SPI3 init:
 // MCP23S17_Init();

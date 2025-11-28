@@ -77,7 +77,7 @@ typedef enum {
 int mcp23s17_init(mcp23s17_handle_t *h);
 
 int mcp23s17_write_reg(mcp23s17_handle_t *handle, uint8_t reg, uint8_t value);
-int mcp23s17_read_reg(mcp23s17_handle_t *handle, uint8_t reg, uint8_t *value);
+int mcp23s17_read_reg(mcp23s17_handle_t *handle, uint8_t reg);
 
 int mcp23s17_pin_mode(mcp23s17_handle_t *handle, uint8_t pin, int input);
 int mcp23s17_pullup(mcp23s17_handle_t *handle, uint8_t pin, int enable);
@@ -91,9 +91,9 @@ int mcp23s17_int_enable(mcp23s17_handle_t *handle, uint8_t pin, int enable);
 int mcp23s17_int_get_captured(mcp23s17_handle_t *handle, mcp23s17_port_t port, uint8_t *value);
 int mcp23s17_int_get_flag(mcp23s17_handle_t *handle, mcp23s17_port_t port, uint8_t *flag);
 
-void MCP23S17_SetAllPinsLow(void);
-void MCP23S17_SetAllPinsHigh(void);
-void MCP23S17_SetLed(uint8_t ledIndex);
+void mcp23s17_SetAllOFF(mcp23s17_handle_t *h);
+void mcp23s17_SetAllON(mcp23s17_handle_t *h);
+void mcp23s17_SetLed(mcp23s17_handle_t *h, uint8_t ledIndex);
 
 
 #ifdef __cplusplus
