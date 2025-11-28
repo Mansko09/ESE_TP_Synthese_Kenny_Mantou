@@ -81,9 +81,9 @@ Clock polarity/phase : Mode 0
 Chip Select (nCS) : PB7 en Output Push-Pull
 
 ### 2.2 Tests
-![Toutes_Les_Leds](https://github.com/user-attachments/assets/cd7800a6-c962-4c1d-abff-19b98b26e7c1)
+<img src="https://github.com/user-attachments/assets/cd7800a6-c962-4c1d-abff-19b98b26e7c1" width="300"/>
 
-![Une_led](https://github.com/user-attachments/assets/3fe16403-e0ff-4fff-a76d-b7a572f37050)
+<img src="https://github.com/user-attachments/assets/3fe16403-e0ff-4fff-a76d-b7a572f37050" width="300"/>
 
 
 
@@ -92,8 +92,11 @@ Chip Select (nCS) : PB7 en Output Push-Pull
 1) L'I2C utilise les pins PB10(SCL) et PB11(SDA). Cela correspond à l'I2C2. 
 
 ### 3.2 Configuration du CODEC par l'I2C 
+
 1)
-![Signal_horloge_MCLK](https://github.com/user-attachments/assets/c3e19b24-1870-4d2f-a8de-61d600c8f278)
-2) 
-![chip_id](https://github.com/user-attachments/assets/452dc4d6-affd-472a-83a6-81098b02c1ec)
+<img src="https://github.com/user-attachments/assets/c3e19b24-1870-4d2f-a8de-61d600c8f278" width="300"/>
+
+2)
+<img src="https://github.com/user-attachments/assets/452dc4d6-affd-472a-83a6-81098b02c1ec" width="300"/>
+
 
