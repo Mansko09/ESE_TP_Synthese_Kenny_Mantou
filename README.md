@@ -94,3 +94,6 @@ Chip Select (nCS) : PB7 en Output Push-Pull
 ### 3.2 Configuration du CODEC par l'I2C 
 1)
 ![Signal_horloge_MCLK](https://github.com/user-attachments/assets/c3e19b24-1870-4d2f-a8de-61d600c8f278)
+2) 
+![chip_id](https://github.com/user-attachments/assets/452dc4d6-affd-472a-83a6-81098b02c1ec)
+
