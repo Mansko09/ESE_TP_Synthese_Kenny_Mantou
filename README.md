@@ -98,10 +98,11 @@ Chip Select (nCS) : PB7 en Output Push-Pull
 
 2)
 <img src="https://github.com/user-attachments/assets/452dc4d6-affd-472a-83a6-81098b02c1ec" width="300"/>
-3)
+
+3) 
 <img src="https://github.com/user-attachments/assets/ad56656d-0c34-4ddb-978e-e0df89cce364" width="300"/>
 
 ### 3.3 Signaux I2S
-
+2) 
 <img src="https://github.com/user-attachments/assets/13dac0d9-5874-46e8-8dcb-af52840721e9" width="300"/>
 
