@@ -1,3 +1,4 @@
+"./Core/Src/audio/RCFilter.o"
 "./Core/Src/audio/audio.o"
 "./Core/Src/dma.o"
 "./Core/Src/freertos.o"

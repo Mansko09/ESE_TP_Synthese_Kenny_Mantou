@@ -5,12 +5,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/audio/RCFilter.c \
 ../Core/Src/audio/audio.c 
 
 OBJS += \
+./Core/Src/audio/RCFilter.o \
 ./Core/Src/audio/audio.o 
 
 C_DEPS += \
+./Core/Src/audio/RCFilter.d \
 ./Core/Src/audio/audio.d 
 
 
@@ -21,7 +24,7 @@ Core/Src/audio/%.o Core/Src/audio/%.su Core/Src/audio/%.cyclo: ../Core/Src/audio
 clean: clean-Core-2f-Src-2f-audio
 
 clean-Core-2f-Src-2f-audio:
-	-$(RM) ./Core/Src/audio/audio.cyclo ./Core/Src/audio/audio.d ./Core/Src/audio/audio.o ./Core/Src/audio/audio.su
+	-$(RM) ./Core/Src/audio/RCFilter.cyclo ./Core/Src/audio/RCFilter.d ./Core/Src/audio/RCFilter.o ./Core/Src/audio/RCFilter.su ./Core/Src/audio/audio.cyclo ./Core/Src/audio/audio.d ./Core/Src/audio/audio.o ./Core/Src/audio/audio.su
 
 .PHONY: clean-Core-2f-Src-2f-audio
 

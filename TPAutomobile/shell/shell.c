@@ -177,6 +177,7 @@ void task_shell(void * unused)
 	shell_add(&h_shell, 'f', fonction, "Une fonction inutile");
 	shell_add(&h_shell, 'a', addition, "Ma super addition");
 	shell_add(&h_shell, 'c', chenillard, "Mes LEDS sont folles !");
+	shell_add(&h_shell,'r',shellModifierFreqCoupure,"Modifier fréquence de coupure");
 	shell_run(&h_shell);
 
 	// Une tâche ne doit *JAMAIS* retourner

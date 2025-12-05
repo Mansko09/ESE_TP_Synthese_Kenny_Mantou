@@ -20,6 +20,7 @@ extern h_sgtl5000_t h_sgtl5000;
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai);
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai);
 void audio_task(void *argument);
+void audio_process_task(void *argument);
 void fill_triangle_wave_stereo(int16_t *buffer, uint32_t stereo_samples, float freq_hz, int16_t amplitude);
 
 #endif /* INC_AUDIO_AUDIO_H_ */

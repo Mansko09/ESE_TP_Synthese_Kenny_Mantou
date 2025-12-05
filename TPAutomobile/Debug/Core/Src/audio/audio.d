@@ -54,7 +54,8 @@ Core/Src/audio/audio.o: ../Core/Src/audio/audio.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
+ ../Core/Inc/audio/RCFilter.h
 ../Core/Inc/audio/audio.h:
 /home/mantoumben/git/ESE_TP_Synthese_Kenny_Mantou/TPAutomobile/sgtl5000/sgtl5000.h:
 ../Core/Inc/main.h:
@@ -113,3 +114,4 @@ Core/Src/audio/audio.o: ../Core/Src/audio/audio.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
+../Core/Inc/audio/RCFilter.h:

@@ -1,4 +1,7 @@
-../Core/Src/audio/audio.c:29:6:HAL_SAI_TxHalfCpltCallback	2
-../Core/Src/audio/audio.c:37:6:HAL_SAI_TxCpltCallback	2
-../Core/Src/audio/audio.c:58:6:audio_task	4
-../Core/Src/audio/audio.c:103:6:fill_triangle_wave_stereo	4
+../Core/Src/audio/audio.c:35:6:HAL_SAI_TxHalfCpltCallback	3
+../Core/Src/audio/audio.c:46:6:HAL_SAI_TxCpltCallback	3
+../Core/Src/audio/audio.c:57:6:HAL_SAI_RxHalfCpltCallback	2
+../Core/Src/audio/audio.c:65:6:HAL_SAI_RxCpltCallback	2
+../Core/Src/audio/audio.c:75:6:audio_task	4
+../Core/Src/audio/audio.c:121:6:audio_process_task	7
+../Core/Src/audio/audio.c:180:6:fill_triangle_wave_stereo	4

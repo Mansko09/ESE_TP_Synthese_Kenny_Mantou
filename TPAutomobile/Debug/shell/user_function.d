@@ -54,7 +54,7 @@ shell/user_function.o: ../shell/user_function.c ../shell/user_function.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
- ../shell/../MCP23S17_/mcp23s17.h
+ ../shell/../MCP23S17_/mcp23s17.h ../Core/Inc/audio/RCFilter.h
 ../shell/user_function.h:
 ../shell/shell.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h:
@@ -113,3 +113,4 @@ shell/user_function.o: ../shell/user_function.c ../shell/user_function.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h:
 ../shell/../MCP23S17_/mcp23s17.h:
+../Core/Inc/audio/RCFilter.h:

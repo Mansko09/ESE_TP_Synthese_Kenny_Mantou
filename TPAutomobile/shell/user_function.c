@@ -51,10 +51,22 @@ int chenillard(h_shell_t * h_shell, int argc, char ** argv)
 	}
 	int a = atoi(argv[1]);
 	if (a <= 15){
-		mcp23s17_SetAllOFF(&mcp);
+		mcp23s17_SetAllON(&mcp);
 		mcp23s17_SetLed(&mcp, a);
 		printf("Led %d \r\n", a);
 	}
+	return 0;
+}
 
+int shellModifierFreqCoupure(h_shell_t * h_shell, int argc, char ** argv){
+	if (argc != 2)
+	{
+		printf("Error: expected one argument\r\n");
+		return -1;
+	}
+	uint16_t cutoff_frequency = atoi(argv[1]);
+	if ((cutoff_frequency>=0)&&(cutoff_frequency <= 20000)){
+		RC_filter_init(&h_RC_filter, cutoff_frequency);
+	}
 	return 0;
 }
