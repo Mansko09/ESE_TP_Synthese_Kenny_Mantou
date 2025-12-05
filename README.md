@@ -108,7 +108,7 @@ Chip Select (nCS) : PB7 en Output Push-Pull
 
 ### 3.4 Génération de signal audio 
 1) On génère un signal triangulaire
-![IMG_0521](https://github.com/user-attachments/assets/f5921383-9da3-4b63-b9fa-4c4d19f4d414)
+<img src="https://github.com/user-attachments/assets/f5921383-9da3-4b63-b9fa-4c4d19f4d414" width="300"/>
 
 
 ## 5 - Filtre RC 
@@ -146,8 +146,8 @@ $$
 $$
 
 où :
-- $ f_s $ = fréquence d’échantillonnage
-- $ T_s = \frac{1}{f_s} $ = période d’échantillonnage
+- $f_s$ = fréquence d’échantillonnage
+- $T_s = \frac{1}{f_s}$ = période d’échantillonnage
 
 On remplace dans l’équation :
 
@@ -202,9 +202,9 @@ $$
 80\,000\,000 \times 20.833 \times 10^{-6} \approx 1667 \text{ cycles par échantillon}
 $$
 à fc=10kHz
-![IMG_0521](https://github.com/user-attachments/assets/0748afe7-c9f9-40e8-8a8a-97ce3254b336)
+<img src="https://github.com/user-attachments/assets/0748afe7-c9f9-40e8-8a8a-97ce3254b336" width="300"/>
 On modifie avec le shell fc:
-![IMG_0523](https://github.com/user-attachments/assets/ec383a14-df64-45b0-8b9e-15f31a94555b)
+<img src="https://github.com/user-attachments/assets/ec383a14-df64-45b0-8b9e-15f31a94555b" width="300"/>
 
-![IMG_0522](https://github.com/user-attachments/assets/371aae22-2623-4f7e-9ac1-07de2e018c02)
+<img src="https://github.com/user-attachments/assets/371aae22-2623-4f7e-9ac1-07de2e018c02" width="300"/>
 
