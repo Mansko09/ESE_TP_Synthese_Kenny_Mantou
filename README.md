@@ -147,7 +147,6 @@ $$
 
 où :
 - $f_s$ = fréquence d’échantillonnage
-- $T_s = \frac{1}{f_s}$ = période d’échantillonnage
 
 On remplace dans l’équation :
 
@@ -207,7 +206,7 @@ $$
 
 <img src="https://github.com/user-attachments/assets/0748afe7-c9f9-40e8-8a8a-97ce3254b336" width="300"/>
 
-On modifie avec le shell fc:
+On modifie fc avec le shell :
 
 <img src="https://github.com/user-attachments/assets/ec383a14-df64-45b0-8b9e-15f31a94555b" width="300"/>
 
