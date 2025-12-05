@@ -177,9 +177,9 @@ $$
 
 En identifiant les coefficients :
 
-- **A = 1**
-- **B = RC \cdot f_s**
-- **D = RC \cdot f_s + 1**
+- A = 1
+- B = $RC \cdot f_s$
+- D = $RC \cdot f_s + 1$
 
 Comme la constante de temps $RC = \frac{1}{2\pi f_c}$ (où $f_c$ = fréquence de coupure), on peut aussi écrire :
 
