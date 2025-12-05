@@ -6,3 +6,5 @@
 ../shell/shell.c:77:12:shell_exec	6
 ../shell/shell.c:108:5:shell_run	6
 ../shell/shell.c:154:6:shell_uart_rx_callback	2
+../shell/shell.c:165:6:HAL_UART_RxCpltCallback	2
+../shell/shell.c:174:6:task_shell	1

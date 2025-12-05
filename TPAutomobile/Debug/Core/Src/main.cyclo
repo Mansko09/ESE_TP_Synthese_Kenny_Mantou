@@ -1,0 +1,15 @@
+../Core/Src/main.c:88:5:__io_putchar	1
+../Core/Src/main.c:97:6:cs_low	1
+../Core/Src/main.c:98:6:cs_high	1
+../Core/Src/main.c:99:6:delay_ms	1
+../Core/Src/main.c:101:6:spi_send	1
+../Core/Src/main.c:105:6:spi_recv	1
+../Core/Src/main.c:112:9:drv_uart_receive	1
+../Core/Src/main.c:118:9:drv_uart_transmit	1
+../Core/Src/main.c:134:6:task_led	1
+../Core/Src/main.c:143:6:vApplicationStackOverflowHook	1
+../Core/Src/main.c:154:5:main	4
+../Core/Src/main.c:264:6:SystemClock_Config	4
+../Core/Src/main.c:314:6:PeriphCommonClock_Config	2
+../Core/Src/main.c:346:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:364:6:Error_Handler	1

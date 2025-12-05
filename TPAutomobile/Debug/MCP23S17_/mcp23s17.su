@@ -1,8 +1,8 @@
 ../MCP23S17_/mcp23s17.c:31:5:spi_send_bytes	32	static
-../MCP23S17_/mcp23s17.c:40:5:spi_recv_bytes	32	static
-../MCP23S17_/mcp23s17.c:53:5:mcp23s17_init	16	static
-../MCP23S17_/mcp23s17.c:80:5:mcp23s17_write_reg	24	static
-../MCP23S17_/mcp23s17.c:95:5:mcp23s17_read_reg	24	static
-../MCP23S17_/mcp23s17.c:104:6:mcp23s17_SetAllON	16	static
-../MCP23S17_/mcp23s17.c:110:6:mcp23s17_SetAllOFF	16	static
-../MCP23S17_/mcp23s17.c:117:6:mcp23s17_SetLed	24	static
+../MCP23S17_/mcp23s17.c:41:5:spi_recv_bytes	32	static
+../MCP23S17_/mcp23s17.c:54:5:mcp23s17_init	16	static
+../MCP23S17_/mcp23s17.c:81:5:mcp23s17_write_reg	24	static
+../MCP23S17_/mcp23s17.c:96:5:mcp23s17_read_reg	24	static
+../MCP23S17_/mcp23s17.c:105:6:mcp23s17_SetAllON	16	static
+../MCP23S17_/mcp23s17.c:111:6:mcp23s17_SetAllOFF	16	static
+../MCP23S17_/mcp23s17.c:118:6:mcp23s17_SetLed	24	static

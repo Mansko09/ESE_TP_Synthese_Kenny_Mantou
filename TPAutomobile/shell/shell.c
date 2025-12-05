@@ -6,7 +6,7 @@
  */
 
 #include "shell.h"
-
+#include "user_function.h"
 #include <stdio.h>
 
 #include "usart.h"
@@ -156,4 +156,29 @@ void shell_uart_rx_callback(h_shell_t * h_shell)
 	BaseType_t hptw;
 	xSemaphoreGiveFromISR(h_shell->sem_uart_rx, &hptw);
 	portYIELD_FROM_ISR(hptw);
+}
+
+/* =========== API ===============*/
+
+extern h_shell_t h_shell;
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == USART2)
+	{
+		// Caractère reçu : Donner le sémaphore pour débloquer task_shell
+		shell_uart_rx_callback(&h_shell);
+	}
+}
+
+void task_shell(void * unused)
+{
+	shell_init(&h_shell);
+	shell_add(&h_shell, 'f', fonction, "Une fonction inutile");
+	shell_add(&h_shell, 'a', addition, "Ma super addition");
+	shell_add(&h_shell, 'c', chenillard, "Mes LEDS sont folles !");
+	shell_run(&h_shell);
+
+	// Une tâche ne doit *JAMAIS* retourner
+	// Ici elle ne retourne pas parce qu'il y a une boucle infinie dans shell_run();
 }

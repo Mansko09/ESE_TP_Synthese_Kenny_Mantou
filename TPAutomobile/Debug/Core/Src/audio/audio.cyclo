@@ -1,0 +1,4 @@
+../Core/Src/audio/audio.c:29:6:HAL_SAI_TxHalfCpltCallback	2
+../Core/Src/audio/audio.c:37:6:HAL_SAI_TxCpltCallback	2
+../Core/Src/audio/audio.c:58:6:audio_task	4
+../Core/Src/audio/audio.c:103:6:fill_triangle_wave_stereo	4

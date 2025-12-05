@@ -37,6 +37,7 @@ int spi_send_bytes(mcp23s17_handle_t *h, const uint8_t *tx, uint8_t *rx, uint16_
 	h->cs_high(h->user_data);
 	return 1;
 }
+
 int spi_recv_bytes(mcp23s17_handle_t *h, const uint8_t *tx, uint8_t *rx, uint16_t len)
 {
 	if (!h || !h->spi_receive || !h->cs_low || !h->cs_high) return 0;
@@ -141,6 +142,3 @@ void mcp23s17_SetLed(mcp23s17_handle_t *h, uint8_t ledIndex)
 	}
 }
 
-// In your main function, after HAL_Init() and SPI3 init:
-// MCP23S17_Init();
-// Then call MCP23S17_SetAllPinsHigh() when needed.

@@ -1,3 +1,4 @@
+"./Core/Src/audio/audio.o"
 "./Core/Src/dma.o"
 "./Core/Src/freertos.o"
 "./Core/Src/gpio.o"
@@ -53,3 +54,4 @@
 "./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o"
 "./sgtl5000/sgtl5000.o"
 "./shell/shell.o"
+"./shell/user_function.o"

@@ -6,3 +6,5 @@
 ../shell/shell.c:77:12:shell_exec	72	static
 ../shell/shell.c:108:5:shell_run	32	static
 ../shell/shell.c:154:6:shell_uart_rx_callback	24	static,ignoring_inline_asm
+../shell/shell.c:165:6:HAL_UART_RxCpltCallback	16	static
+../shell/shell.c:174:6:task_shell	16	static

@@ -54,4 +54,6 @@ int shell_add(h_shell_t * h_shell, char c, int (* pfunc)(h_shell_t * h_shell, in
 int shell_run(h_shell_t * h_shell);
 void shell_uart_rx_callback(h_shell_t * h_shell);
 
+void task_shell(void * unused);
+
 #endif /* INC_LIB_SHELL_SHELL_H_ */
