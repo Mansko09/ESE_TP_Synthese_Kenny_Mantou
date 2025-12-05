@@ -161,7 +161,7 @@ $$
 V_{in}[n] = (RC \cdot f_s + 1) V[n] - (RC \cdot f_s) V[n-1]
 $$
 
-On isole $ V[n] $ (sortie courante) :
+On isole $V[n]$ (sortie courante) :
 
 $$
 V[n] = \frac{V_{in}[n] + (RC \cdot f_s) V[n-1]}{RC \cdot f_s + 1}
@@ -181,7 +181,7 @@ En identifiant les coefficients :
 - **B = RC \cdot f_s**
 - **D = RC \cdot f_s + 1**
 
-Comme la constante de temps $ RC = \frac{1}{2\pi f_c} $ (où $ f_c $ = fréquence de coupure), on peut aussi écrire :
+Comme la constante de temps $RC = \frac{1}{2\pi f_c}$ (où $f_c$ = fréquence de coupure), on peut aussi écrire :
 
 $$
 B = \frac{f_s}{2\pi f_c} \quad ; \quad D = 1 + \frac{f_s}{2\pi f_c}
@@ -202,8 +202,11 @@ $$
 80\,000\,000 \times 20.833 \times 10^{-6} \approx 1667 \text{ cycles par échantillon}
 $$
 à fc=10kHz
+
 <img src="https://github.com/user-attachments/assets/0748afe7-c9f9-40e8-8a8a-97ce3254b336" width="300"/>
+
 On modifie avec le shell fc:
+
 <img src="https://github.com/user-attachments/assets/ec383a14-df64-45b0-8b9e-15f31a94555b" width="300"/>
 
 <img src="https://github.com/user-attachments/assets/371aae22-2623-4f7e-9ac1-07de2e018c02" width="300"/>
