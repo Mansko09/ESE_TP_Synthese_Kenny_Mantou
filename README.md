@@ -201,6 +201,8 @@ Notre microcontrôleur tourne à **80 MHz** :
 $$
 80\,000\,000 \times 20.833 \times 10^{-6} \approx 1667 \text{ cycles par échantillon}
 $$
+
+
 à fc=10kHz
 
 <img src="https://github.com/user-attachments/assets/0748afe7-c9f9-40e8-8a8a-97ce3254b336" width="300"/>
